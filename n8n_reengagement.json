@@ -1,0 +1,99 @@
+{
+  "name": "Uncle Marv's — Customer Re-Engagement",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "schedule",
+        "cronExpression": "0 10 * * 0"
+      },
+      "id": "weekly-trigger",
+      "name": "Every Sunday 10AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "sheetId": "UNCLE_MARVS_CUSTOMERS",
+        "range": "A1",
+        "options": {
+          "rawData": false
+        }
+      },
+      "id": "get-customers",
+      "name": "Get All Customers",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Filter customers who haven't ordered in 30+ days\nconst customers = $input.all();\nconst thirtyDaysAgo = new Date();\nthirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);\n\nconst dormant = customers.filter(c => {\n  const lastOrder = new Date(c.json.date);\n  return lastOrder < thirtyDaysAgo;\n});\n\nreturn dormant.map(c => ({ json: c.json }));"
+      },
+      "id": "filter-dormant",
+      "name": "Find Dormant (30+ days)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 3,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "to": "={{ $json.email }}",
+        "subject": "=We miss you, {{ $json.customer_name }}! 🥓 20% OFF your next order",
+        "body": "=Hey {{ $json.customer_name }},\n\nIt's been a while since we've seen you at the truck!\n\nWe miss your face — and your taste buds.\n\n🎁 Here's 20% OFF your next order:\n**USE CODE: WEMISSYOU20**\n\nValid for the next 7 days.\n\n🔥 Come by and try a new flavor — we've got 22 now!\n\n— Uncle Marv's\n\nP.S. Find the truck: https://unclemarvsbeefbacon.com/truck-locator",
+        "options": {}
+      },
+      "id": "send-reengagement",
+      "name": "Send 'We Miss You' Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "text": "=📧 Re-engagement emails sent to {{ $json.length }} dormant customers.\n\nCode: WEMISSYOU20 — valid 7 days.",
+        "options": {}
+      },
+      "id": "telegram-report",
+      "name": "Report to Marvin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Every Sunday 10AM": {
+      "main": [
+        [{"node": "Get All Customers", "type": "main", "index": 0}]
+      ]
+    },
+    "Get All Customers": {
+      "main": [
+        [{"node": "Find Dormant (30+ days)", "type": "main", "index": 0}]
+      ]
+    },
+    "Find Dormant (30+ days)": {
+      "main": [
+        [{"node": "Send 'We Miss You' Email", "type": "main", "index": 0}]
+      ]
+    },
+    "Send 'We Miss You' Email": {
+      "main": [
+        [{"node": "Report to Marvin", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": ["uncle-marvs", "marketing", "re-engagement", "automation"],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "templateId": "uncle-marvs-reengagement"
+  }
+}

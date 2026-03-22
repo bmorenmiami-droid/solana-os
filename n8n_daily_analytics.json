@@ -1,0 +1,99 @@
+{
+  "name": "Uncle Marv's — Daily Analytics Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "schedule",
+        "cronExpression": "0 8 * * *"
+      },
+      "id": "daily-trigger",
+      "name": "Daily 8AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://unclemarvsbeefbacon.com/wp-json/wc/v3/orders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Basic {{ $env.WOOCOMMERCE_AUTH }}"
+            }
+          ]
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "per_page",
+              "value": 100
+            },
+            {
+              "name": "after",
+              "value": "={{ $now.minus(1, 'day').toISO() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-yesterday-orders",
+      "name": "Get Yesterday's Orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Calculate daily stats\nconst orders = $input.all();\n\nconst totalRevenue = orders.reduce((sum, o) => sum + parseFloat(o.json.total || 0), 0);\nconst orderCount = orders.length;\nconst avgOrder = orderCount > 0 ? totalRevenue / orderCount : 0;\n\n// Count flavors\nconst flavorCount = {};\norders.forEach(o => {\n  const item = o.json.line_items?.[0]?.name || 'Unknown';\n  flavorCount[item] = (flavorCount[item] || 0) + 1;\n});\n\n// Top 5 flavors\nconst topFlavors = Object.entries(flavorCount)\n  .sort((a, b) => b[1] - a[1])\n  .slice(0, 5)\n  .map(([flavor, count]) => `${flavor}: ${count}`);\n\n// Unique customers\nconst uniqueCustomers = [...new Set(orders.map(o => o.json.customer?.email))].length;\n\nreturn [{\n  json: {\n    totalRevenue: totalRevenue.toFixed(2),\n    orderCount,\n    avgOrder: avgOrder.toFixed(2),\n    uniqueCustomers,\n    topFlavors: topFlavors.join('\\n'),\n    topFlavor: topFlavors[0] || 'N/A'\n  }\n}];"
+      },
+      "id": "calculate-stats",
+      "name": "Calculate Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 3,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "text": "=📊 UNCLE MARV'S DAILY REPORT\n\n💰 YESTERDAY'S NUMBERS:\n• Revenue: ${{ $json.totalRevenue }}\n• Orders: {{ $json.orderCount }}\n• Avg Order: ${{ $json.avgOrder }}\n• Customers: {{ $json.uniqueCustomers }}\n\n🔥 TOP FLAVORS:\n{{ $json.topFlavors }}\n\n🚀 Let's crush today!",
+        "options": {}
+      },
+      "id": "telegram-report",
+      "name": "Send to Marvin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [700, 300]
+    }
+  ],
+  "connections": {
+    "Daily 8AM": {
+      "main": [
+        [{"node": "Get Yesterday's Orders", "type": "main", "index": 0}]
+      ]
+    },
+    "Get Yesterday's Orders": {
+      "main": [
+        [{"node": "Calculate Stats", "type": "main", "index": 0}]
+      ]
+    },
+    "Calculate Stats": {
+      "main": [
+        [{"node": "Send to Marvin", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": ["uncle-marvs", "analytics", "daily-report", "automation"],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "templateId": "uncle-marvs-daily-analytics"
+  }
+}

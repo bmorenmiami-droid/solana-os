@@ -1,0 +1,205 @@
+{
+  "name": "Uncle Marv's — Social Media Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "schedule",
+        "cronExpression": "0 8,12,17,21 * * *"
+      },
+      "id": "scheduled-trigger",
+      "name": "4x Daily Posts",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "operation": "randomArray",
+        "values": {
+          "string": [
+            {"value": "🥓 Fresh beef bacon ready! Stop by and taste the difference. #BeefBacon #FoodTruck"},
+            {"value": "🔥 22 flavors. Zero limits. Your taste buds deserve this. #BeefBacon #Foodie"},
+            {"value": "Who else is hungry? 🤤 Swing by the truck today! #BeefBacon #MiamiFood"},
+            {"value": "Real beef. Real smoke. Real flavor. That's Uncle Marv's promise. 🥓 #BBQ #FoodTruck"},
+            {"value": "Monday motivation: Bacon. 'Cause everything is better with beef bacon. 🥓 #FoodLover"},
+            {"value": "Truck location update coming soon! Stay tuned for your beef bacon fix. 🔥 #FoodTruckLife"},
+            {"value": "Pro tip: Try the Scorpion Pepper flavor if you dare! 🌶️ #BeefBacon #SpicyFood"},
+            {"value": "From our smoker to your plate — authentic Black-owned beef bacon. Support local! 💪🏾 #BlackOwned"},
+            {"value": "What's your favorite flavor? Drop it below! 👇 #BeefBacon #FlavorTown"},
+            {"value": "Beef bacon > pork bacon. Fight me. 🥓😤 #BeefBacon #Facts"},
+            {"value": "Fresh cuts, aged flavor. That's the Uncle Marv's difference. 🔥 #CraftBacon"},
+            {"value": "Craving solved. Drive on by! #FoodTruck #BeefBacon #Miramar"}
+          ]
+        }
+      },
+      "id": "pick-caption",
+      "name": "Pick Caption",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 3,
+      "position": [300, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/images/generations",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "apiKey",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.OPENAI_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "= Delicious smoky beef bacon strips on a rustic wooden board, premium quality, food photography, dark moody lighting, professional, 4k, appetizing"
+            },
+            {
+              "name": "n",
+              "value": 1
+            },
+            {
+              "name": "size",
+              "value": "1024x1024"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "generate-image",
+      "name": "Generate Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{ $env.INSTAGRAM_BUSINESS_ID }}/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.data[0].url }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $json.randomString }}"
+            }
+          ]
+        },
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "{{ $env.INSTAGRAM_ACCESS_TOKEN }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "post-instagram",
+      "name": "Post to Instagram",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.twitter.com/2/tweets",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.randomString }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "post-twitter",
+      "name": "Post to Twitter",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "text": "=✅ Social media posted:\n\n{{ $json.randomString }}\n\nImage generated, Instagram + Twitter updated.",
+        "options": {}
+      },
+      "id": "telegram-confirm",
+      "name": "Notify Marvin",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "4x Daily Posts": {
+      "main": [
+        [{"node": "Pick Caption", "type": "main", "index": 0}]
+      ]
+    },
+    "Pick Caption": {
+      "main": [
+        [{"node": "Generate Image", "type": "main", "index": 0}]
+      ]
+    },
+    "Generate Image": {
+      "main": [
+        [{"node": "Post to Instagram", "type": "main", "index": 0}],
+        [{"node": "Post to Twitter", "type": "main", "index": 0}]
+      ]
+    },
+    "Post to Instagram": {
+      "main": [
+        [{"node": "Notify Marvin", "type": "main", "index": 0}]
+      ]
+    },
+    "Post to Twitter": {
+      "main": [
+        [{"node": "Notify Marvin", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": ["uncle-marvs", "social-media", "automation", "marketing"],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "templateId": "uncle-marvs-social-automation"
+  }
+}
