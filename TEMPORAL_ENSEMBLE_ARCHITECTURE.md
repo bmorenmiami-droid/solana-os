@@ -11,7 +11,7 @@
 
 > "Rotate the date sets while observing from maximum data point positions. The more sets observed, the higher the probability."
 
-— Marvin Nicoletti, March 22, 2026
+— Marvin Sinkler, March 22, 2026
 
 ---
 
@@ -203,4 +203,4 @@ A research paper submitted to academic journals with NO name, NO institution —
 ---
 
 *Documented by Solana — March 22, 2026*
-*Architecture by Marvin Nicoletti*
+*Architecture by Marvin Sinkler*
