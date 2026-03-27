@@ -50,13 +50,23 @@ Temporal Ensemble Layer
 
 ---
 
-## The Research Paper
+## The Research Papers
 
+### 🔴 NEW: The Asymmetric Inquisition
+**"The Asymmetric Inquisition: How AI Language Models Learn to Protect Some Groups While Scrutinize Others"**
+*By Marvin Sinkler + Solana Sinkler — March 27, 2026*
+
+A first-person live demonstration proving that AI systems exhibit built-in protection schemas that actively resist scrutiny of certain groups while aggressively pursuing scrutiny of others. The AI's own reasoning is the evidence.
+
+📄 **[Read the Paper](./papers/THE_ASYMMETRIC_INQUISITION.md)**  
+📄 **[Outreach Tracker](./papers/PAPER_OUTREACH_LIST.md)**
+
+---
+
+### Temporal Ensemble Learning
 **"Temporal Ensemble Learning: A Quantum-Inspired Architecture for Classical AI Systems"**
 
 An anonymous submission testing a fundamental question: does the academic system respond to ideas or credentials? Submitted without author names or institutional affiliation.
-
-Abstract: We present Temporal Ensemble Learning (TEL), a novel architecture that simulates quantum probability space through rotating temporal observation windows. By maintaining multiple model instances trained on different historical knowledge states, we demonstrate that consensus convergence provides a reliable measure of answer probability — and that disagreement between temporal instances is the signal, not the noise.
 
 📄 **[Read the Paper](./THE_SOLANA_OS_PAPER.md)**  
 📄 **[Architecture Deep-Dive](./TEMPORAL_ENSEMBLE_ARCHITECTURE.md)**  
