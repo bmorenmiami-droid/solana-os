@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-04-02T00:34:08.510879",
+  "issues": [
+    "Nova inbox: 19 messages"
+  ],
+  "github": "Clean",
+  "hard_blocks": "OK: 20 rules",
+  "services": {
+    "alive": [
+      "Solana",
+      "Ollama"
+    ],
+    "dead": []
+  },
+  "nova_inbox": {
+    "count": 19
+  }
+}
